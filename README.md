@@ -24,6 +24,8 @@ O sistema foi desenvolvido seguindo boas práticas de arquitetura, separação d
 
 ---
 ## 🏗️ Arquitetura do Projeto
+
+```text
 autorent/
 │
 ├── backend/
@@ -56,6 +58,7 @@ autorent/
 │   └── requirements.txt
 │
 └── README.md
+```
 ---
 
 ## 🛠 Tecnologias Utilizadas
