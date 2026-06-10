@@ -3,13 +3,30 @@ from decimal import Decimal
 from django.db import models
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from django.core.validators import (MinValueValidator, MaxValueValidator, RegexValidator,)
 
+# --
+# VALIDAÇÕES
+# --
 
-# SOFT DELETE MANAGER
-# Quando utilizar:
-# Veiculo.objects.all()
-# apenas registros não deletados serão retornados.
-# Os deletados continuam no banco para auditoria.
+cpf_validator = RegexValidator(
+    regex=r"^\d{11}$",
+    message="CPF deve conter exatamente 11 números."
+)
+
+cep_validator = RegexValidator(
+    regex=r"^\d{5}-?\d{3}$",
+    message="CEP inválido. Exemplo: 56780-000"
+)
+
+placa_validator = RegexValidator(
+    regex=r"^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$",
+    message="Placa inválida. Exemplo: ABC1234 ou ABC1D23"
+)
+
+# --
+# Manager para Soft Delete
+# --
 
 class SoftDeleteManager(models.Manager):
     def get_queryset(self):
@@ -17,86 +34,79 @@ class SoftDeleteManager(models.Manager):
             deleted_at__isnull=True
         )
 
-# BASE MODEL
-# Todos os modelos herdam: created_at, updated_at, deleted_at
+# --
+# Modelo base utilizado por todas as entidades
+# --
 
 class BaseModel(models.Model):
-
-    created_at = models.DateTimeField(
-        auto_now_add=True
-    )
-
-    updated_at = models.DateTimeField(
-        auto_now=True
-    )
-
-    deleted_at = models.DateTimeField(
-        null=True,
-        blank=True
-    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
 
     objects = SoftDeleteManager()
-
     all_objects = models.Manager()
 
     class Meta:
         abstract = True
 
     def delete(self, *args, **kwargs):
-        """
-        Soft Delete
-
-        Em vez de remover o registro
-        do banco de dados.
-
-        Apenas marca uma data de exclusão.
-        """
-
         self.deleted_at = timezone.now()
         self.save()
 
-# VEÍCULO
-# Representa um carro disponível para aluguel.
-# Futuramente (p4) pode ser consumido por uma aplicação React.
-
+# --
+# Veículos disponíveis
+# --
 class Veiculo(BaseModel):
 
-    marca = models.CharField(
-        max_length=100
+    STATUS_VEICULO = (
+        ("DISPONIVEL", "Disponível"),
+        ("ALUGADO", "Alugado"),
+        ("MANUTENCAO", "Manutenção"),
     )
 
-    modelo = models.CharField(
-        max_length=100
-    )
-
+    marca = models.CharField(max_length=100)
+    modelo = models.CharField(max_length=100)
     ano = models.PositiveIntegerField()
+
+    placa = models.CharField(
+        max_length=10,
+        unique=True,
+        validators=[placa_validator]
+    )
 
     preco_diaria = models.DecimalField(
         max_digits=10,
-        decimal_places=2
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))]
     )
 
-    disponivel = models.BooleanField(
-        default=True
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_VEICULO,
+        default="DISPONIVEL"
     )
+
+    class Meta:
+        verbose_name = "Veículo"
+        verbose_name_plural = "Veículos"
+        ordering = ["marca", "modelo"]
 
     def __str__(self):
         return f"{self.marca} {self.modelo}"
 
-
-# CLIENTE
-
-# Não estamos utilizando o User padrão do Django nesta primeira fase.
-# Futuramente pode ser integrado ao sistema de autenticação.
+# --
+# Clientes
+# --
 
 class Cliente(BaseModel):
 
-    nome = models.CharField(
-        max_length=150
-    )
+    nome = models.CharField(max_length=150)
+    email = models.EmailField(unique=True)
 
-    email = models.EmailField(
-        unique=True
+    cpf = models.CharField(
+        max_length=11,
+        unique=True,
+        validators=[cpf_validator]
     )
 
     cnh = models.CharField(
@@ -104,19 +114,33 @@ class Cliente(BaseModel):
         unique=True
     )
 
-    telefone = models.CharField(
-        max_length=20
+    telefone = models.CharField(max_length=20)
+    data_nascimento = models.DateField()
+    endereco = models.CharField(max_length=255)
+
+    cep = models.CharField(
+        max_length=9,
+        validators=[cep_validator]
     )
+
+    class Meta:
+        ordering = ["nome"]
 
     def __str__(self):
         return self.nome
 
-# RESERVA
-# Núcleo do sistema.
-
-# Responsável por: aluguel, disponibilidade, preço dinâmico
+# --
+# Reservas
+# --
 
 class Reserva(BaseModel):
+
+    STATUS_RESERVA = (
+        ("PENDENTE", "Pendente"),
+        ("CONFIRMADA", "Confirmada"),
+        ("FINALIZADA", "Finalizada"),
+        ("CANCELADA", "Cancelada"),
+    )
 
     veiculo = models.ForeignKey(
         Veiculo,
@@ -131,7 +155,6 @@ class Reserva(BaseModel):
     )
 
     data_inicio = models.DateField()
-
     data_fim = models.DateField()
 
     preco_total = models.DecimalField(
@@ -141,119 +164,152 @@ class Reserva(BaseModel):
         null=True
     )
 
-    STATUS_CHOICES = (
-        ("PENDENTE", "Pendente"),
-        ("CONFIRMADA", "Confirmada"),
-        ("FINALIZADA", "Finalizada"),
-        ("CANCELADA", "Cancelada"),
-    )
-
     status = models.CharField(
         max_length=20,
-        choices=STATUS_CHOICES,
+        choices=STATUS_RESERVA,
         default="PENDENTE"
     )
 
+    class Meta:
+        ordering = ["-created_at"]
+
     def clean(self):
 
-        # REGRA
-        # Data final maior que inicial
-
         if self.data_fim <= self.data_inicio:
-
             raise ValidationError(
-                "A data final deve ser maior que a inicial."
+                "A data final deve ser maior que a data inicial."
             )
 
-        # REGRA 
-        # Impedir dupla reserva
-
-        conflito = Reserva.objects.filter(
-            veiculo=self.veiculo,
-            data_inicio__lt=self.data_fim,
-            data_fim__gt=self.data_inicio
-        ).exclude(
-            id=self.id
+        conflito = (
+            Reserva.objects.filter(
+                veiculo=self.veiculo,
+                data_inicio__lt=self.data_fim,
+                data_fim__gt=self.data_inicio,
+            )
+            .exclude(pk=self.pk)
+            .exclude(status="CANCELADA")
         )
 
         if conflito.exists():
-
             raise ValidationError(
                 "Veículo já reservado neste período."
             )
 
     def save(self, *args, **kwargs):
 
-        self.clean()
+        self.full_clean()
 
         dias = (
-            self.data_fim -
-            self.data_inicio
+            self.data_fim - self.data_inicio
         ).days
 
         valor_base = (
-            self.veiculo.preco_diaria
-            * dias
+            self.veiculo.preco_diaria * dias
         )
 
-        # PREÇO DINÂMICO no fds : Sextou, Sábadou, Domingou
-        # +15%
-
         if self.data_inicio.weekday() in [4, 5, 6]:
-
-            valor_base = (
-                valor_base *
-                Decimal("1.15")
-            )
+            valor_base *= Decimal("1.15")
 
         self.preco_total = valor_base
 
         super().save(*args, **kwargs)
 
+        if self.status == "CONFIRMADA":
+            self.veiculo.status = "ALUGADO"
+
+        elif self.status in ["FINALIZADA", "CANCELADA"]:
+            self.veiculo.status = "DISPONIVEL"
+
+        self.veiculo.save()
+
     def __str__(self):
+        return f"{self.cliente.nome} - {self.veiculo.modelo}"
 
-        return (
-            f"{self.cliente.nome}"
-            f" -> "
-            f"{self.veiculo.modelo}"
-        )
+# --
+# Pagamentos
+# --
+class Pagamento(BaseModel):
 
-# AVALIAÇÃO
-
-class Avaliacao(BaseModel):
-
-    cliente = models.ForeignKey(
-        Cliente,
-        on_delete=models.CASCADE
+    METODO_PAGAMENTO = (
+        ("PIX", "PIX"),
+        ("CARTAO_CREDITO", "Cartão de Crédito"),
+        ("CARTAO_DEBITO", "Cartão de Débito"),
+        ("DINHEIRO", "Dinheiro"),
     )
 
-    veiculo = models.ForeignKey(
-        Veiculo,
-        on_delete=models.CASCADE
+    STATUS_PAGAMENTO = (
+        ("PENDENTE", "Pendente"),
+        ("PAGO", "Pago"),
+        ("CANCELADO", "Cancelado"),
     )
 
-    nota = models.PositiveSmallIntegerField()
+    reserva = models.OneToOneField(
+        Reserva,
+        on_delete=models.CASCADE,
+        related_name="pagamento"
+    )
 
-    comentario = models.TextField()
+    valor = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        blank=True,
+        null=True
+    )
 
-    def clean(self):
+    metodo = models.CharField(
+        max_length=20,
+        choices=METODO_PAGAMENTO
+    )
 
-        if self.nota < 1 or self.nota > 5:
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_PAGAMENTO,
+        default="PENDENTE"
+    )
 
-            raise ValidationError(
-                "A nota deve estar entre 1 e 5."
-            )
+    data_pagamento = models.DateField(
+        null=True,
+        blank=True
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
 
     def save(self, *args, **kwargs):
 
-        self.clean()
+        if self.valor is None:
+            self.valor = self.reserva.preco_total
 
         super().save(*args, **kwargs)
 
     def __str__(self):
+        return f"Pagamento #{self.id}"
 
-        return (
-            f"{self.cliente.nome}"
-            f" - "
-            f"{self.nota}"
-        )
+# --
+# Avaliações
+# --
+class Avaliacao(BaseModel):
+
+    cliente = models.ForeignKey(
+        Cliente,
+        on_delete=models.CASCADE,
+        related_name="avaliacoes"
+    )
+
+    veiculo = models.ForeignKey(
+        Veiculo,
+        on_delete=models.CASCADE,
+        related_name="avaliacoes"
+    )
+
+    nota = models.PositiveSmallIntegerField(
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(5)
+        ]
+    )
+
+    comentario = models.TextField()
+
+    def __str__(self):
+        return f"{self.cliente.nome} - {self.nota}"

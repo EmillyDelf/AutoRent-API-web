@@ -1,12 +1,7 @@
 from django.contrib import admin
+from .models import (Veiculo, Cliente, Reserva, Pagamento, Avaliacao,)
 
-from .models import (
-    Veiculo, Cliente, Reserva, Avaliacao )
-
-# VEÍCULOS
-# Exibe os veículos cadastrados.
-# Permite: busca / filtros / ordenação
-
+# VEÍCULOS: Exibe os veículos cadastrados.  / Permite: busca / filtros / ordenação
 @admin.register(Veiculo)
 class VeiculoAdmin(admin.ModelAdmin):
 
@@ -16,18 +11,18 @@ class VeiculoAdmin(admin.ModelAdmin):
         "modelo",
         "ano",
         "preco_diaria",
-        "disponivel",
-        "created_at"
+        "status",
+        "created_at",
     )
 
     search_fields = (
         "marca",
-        "modelo"
+        "modelo",
     )
 
     list_filter = (
-        "disponivel",
-        "ano"
+        "status",
+        "ano",
     )
 
     ordering = (
@@ -35,7 +30,6 @@ class VeiculoAdmin(admin.ModelAdmin):
     )
 
 # CLIENTES
-
 @admin.register(Cliente)
 class ClienteAdmin(admin.ModelAdmin):
 
@@ -44,23 +38,21 @@ class ClienteAdmin(admin.ModelAdmin):
         "nome",
         "email",
         "cnh",
-        "telefone"
+        "telefone",
     )
 
     search_fields = (
         "nome",
         "email",
-        "cnh"
+        "cnh",
     )
 
     ordering = (
         "nome",
     )
 
-
 # RESERVAS
 # Aqui é possível visualizar: cliente, veículo, período, valor total e status
-
 @admin.register(Reserva)
 class ReservaAdmin(admin.ModelAdmin):
 
@@ -71,7 +63,7 @@ class ReservaAdmin(admin.ModelAdmin):
         "data_inicio",
         "data_fim",
         "preco_total",
-        "status"
+        "status",
     )
 
     list_filter = (
@@ -81,18 +73,38 @@ class ReservaAdmin(admin.ModelAdmin):
     search_fields = (
         "cliente__nome",
         "veiculo__modelo",
-        "veiculo__marca"
+        "veiculo__marca",
     )
 
     ordering = (
         "-created_at",
     )
 
+# PAGAMENTOS
+@admin.register(Pagamento)
+class PagamentoAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "id",
+        "reserva",
+        "valor",
+        "metodo",
+        "status",
+        "data_pagamento",
+    )
+
+    list_filter = (
+        "status",
+        "metodo",
+    )
+
+    search_fields = (
+        "reserva__cliente__nome",
+        "reserva__veiculo__modelo",
+    )
 
 # AVALIAÇÕES
-
 # Atendendo ao requisito do projetu: avaliações dos usuários
-
 @admin.register(Avaliacao)
 class AvaliacaoAdmin(admin.ModelAdmin):
 
@@ -100,7 +112,7 @@ class AvaliacaoAdmin(admin.ModelAdmin):
         "id",
         "cliente",
         "veiculo",
-        "nota"
+        "nota",
     )
 
     list_filter = (
@@ -109,5 +121,5 @@ class AvaliacaoAdmin(admin.ModelAdmin):
 
     search_fields = (
         "cliente__nome",
-        "veiculo__modelo"
+        "veiculo__modelo",
     )
