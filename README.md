@@ -23,40 +23,39 @@ O sistema foi desenvolvido seguindo boas práticas de arquitetura, separação d
 * Preparar integração futura com Front-end React.
 
 ---
-
 ## 🏗️ Arquitetura do Projeto
-
-```text
 autorent/
 │
-├── autorent_app/
+├── backend/
 │   │
-│   ├── api/
-│   │   └── v1/
-│   │       ├── serializers.py
-│   │       ├── viewsets.py
-│   │       ├── routers.py
-│   │       └── urls.py
+│   ├── autorent_app/
+│   │   │
+│   │   ├── api/
+│   │   │   └── v1/
+│   │   │       ├── serializers.py
+│   │   │       ├── viewsets.py
+│   │   │       ├── routers.py
+│   │   │       └── urls.py
+│   │   │
+│   │   ├── migrations/
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── models.py
+│   │   ├── urls.py
+│   │   ├── views.py
+│   │   └── tests.py
 │   │
-│   ├── migrations/
-│   ├── admin.py
-│   ├── apps.py
-│   ├── models.py
-│   ├── urls.py
-│   ├── views.py
-│   └── tests.py
+│   ├── setup_autorent/
+│   │   ├── settings.py
+│   │   ├── urls.py
+│   │   ├── asgi.py
+│   │   └── wsgi.py
+│   │
+│   ├── .env
+│   ├── manage.py
+│   └── requirements.txt
 │
-├── setup_autorent/
-│   ├── settings.py
-│   ├── urls.py
-│   ├── asgi.py
-│   └── wsgi.py
-│
-├── .env
-├── manage.py
-└── requirements.txt
-```
-
+└── README.md
 ---
 
 ## 🛠 Tecnologias Utilizadas
