@@ -2,9 +2,9 @@
 
 ## Sobre o Projeto
 
-O AutoRent é um sistema de gerenciamento de aluguel de veículos desenvolvido com Django. O objetivo do projeto é permitir o cadastro e gerenciamento de veículos, clientes, reservas e avaliações, aplicando regras de negócio relacionadas à disponibilidade dos veículos e cálculo automático de preços.
+O AutoRent é um sistema de gerenciamento de locação de veículos desenvolvido com Django e PostgreSQL. O projeto foi concebido para automatizar os principais processos de uma locadora, incluindo gestão de clientes, controle de frota, reservas, pagamentos e avaliações.
 
-Nesta etapa inicial, foi desenvolvida a camada de backend responsável pela modelagem dos dados e implementação das regras de negócio principais do sistema.
+Nesta fase foi desenvolvida a camada de backend, responsável pela modelagem dos dados, validações, regras de negócio e administração do sistema através do Django Admin, preparando a aplicação para futura integração com uma API REST e um front-end React.
 
 ---
 
@@ -13,53 +13,126 @@ Nesta etapa inicial, foi desenvolvida a camada de backend responsável pela mode
 ### 🚙 Gestão de Veículos
 
 * Cadastro de veículos
-* Controle de disponibilidade
-* Armazenamento de informações como marca, modelo, ano e valor da diária
+* Controle de status do veículo
+* Identificação por placa
+* Controle de valor da diária
+* Validação de placa
+* Controle de disponibilidade por status
+
+Campos principais:
+
+* Marca
+* Modelo
+* Ano
+* Placa
+* Valor da diária
+* Status
+
+---
 
 ### 👤 Gestão de Clientes
 
-* Cadastro de clientes
-* Armazenamento de informações de contato
-* Controle de CNH única por cliente
+* Cadastro completo de clientes
+* Controle de CPF único
+* Controle de CNH única
+* Armazenamento de endereço
+* Validação de CPF
+* Validação de CEP
+
+Campos principais:
+
+* Nome
+* E-mail
+* CPF
+* CNH
+* Telefone
+* Data de nascimento
+* Endereço
+* CEP
+
+---
 
 ### 📅 Gestão de Reservas
 
 * Criação de reservas vinculadas a clientes e veículos
-* Validação automática de datas
-* Controle de conflito de reservas
-* Cálculo automático do valor total da locação
-* Aplicação de preço dinâmico para reservas iniciadas em finais de semana
+* Controle de períodos de locação
+* Cálculo automático do valor da reserva
+* Controle de conflitos de agenda
+* Atualização automática do status do veículo
 * Controle de status da reserva
+
+Status disponíveis:
+
+* Pendente
+* Confirmada
+* Finalizada
+* Cancelada
+
+---
+
+### 💳 Gestão de Pagamentos
+
+* Associação de pagamento a uma reserva
+* Controle de valor pago
+* Controle de método de pagamento
+* Controle de status do pagamento
+* Registro da data de pagamento
+
+Métodos disponíveis:
+
+* PIX
+* Cartão de Crédito
+* Cartão de Débito
+* Dinheiro
+
+---
 
 ### ⭐ Avaliações
 
-* Cadastro de avaliações dos usuários
-* Associação entre cliente e veículo
-* Sistema de notas e comentários
+* Avaliação de veículos por clientes
+* Sistema de notas de 1 a 5
+* Comentários sobre a experiência de locação
 
 ---
 
 ## Regras de Negócio Implementadas
 
-### Controle de Disponibilidade
+### Controle de Conflito de Reservas
 
-O sistema impede que um veículo seja reservado para períodos que já possuam reservas ativas, evitando conflitos de agenda.
+O sistema impede que um veículo possua duas reservas simultâneas para períodos sobrepostos.
 
 ### Validação de Datas
 
-A data final da reserva deve ser obrigatoriamente posterior à data inicial.
+A data final da reserva deve ser posterior à data inicial.
 
-### Cálculo Automático
+### Cálculo Automático da Locação
 
-O valor total da reserva é calculado automaticamente com base na quantidade de dias alugados e no valor da diária do veículo.
+O valor total da reserva é calculado automaticamente com base na quantidade de dias e no valor da diária do veículo.
 
 ### Preço Dinâmico
 
-Reservas iniciadas na sexta-feira, sábado ou domingo recebem um acréscimo de 15% sobre o valor total da locação.
+Reservas iniciadas na sexta-feira, sábado ou domingo recebem acréscimo de 15% sobre o valor total.
+
+### Atualização Automática de Status
+
+Ao confirmar uma reserva, o veículo passa automaticamente para o status "Alugado". Quando a reserva é finalizada ou cancelada, o veículo retorna para "Disponível".
 
 ### Soft Delete
 
-Os registros não são removidos fisicamente do banco de dados. Quando excluídos, recebem uma marcação de exclusão lógica, preservando o histórico para auditoria.
+Os registros não são removidos fisicamente do banco de dados. A exclusão é lógica, preservando o histórico para auditoria e rastreabilidade.
+
+---
+
+## Validações Implementadas
+
+* CPF
+* CEP
+* Placa veicular
+* Ano do veículo
+* Valor mínimo da diária
+* Nota da avaliação
+* Data de nascimento
+* Conflitos de reserva
 
 ---
 
@@ -76,13 +149,16 @@ autorent/
 │   ├── apps.py
 │   ├── models.py
 │   ├── urls.py
-│   └── views.py
+│   ├── views.py
+│   └── tests.py
 │
 ├── setup_autorent/
 │   ├── settings.py
 │   ├── urls.py
-│   └── ...
+│   ├── asgi.py
+│   └── wsgi.py
 │
+├── .env
 └── manage.py
 ```
 
@@ -90,29 +166,37 @@ autorent/
 
 ## Tecnologias Utilizadas
 
-* Python
+* Python 3
 * Django
-* Django REST Framework (configurado para etapas futuras)
-* SQLite (desenvolvimento)
-* PostgreSQL (planejado)
-* JWT (planejado)
-* Swagger (planejado)
+* Django REST Framework
+* PostgreSQL
+* Python Decouple
+* Django Admin
+
+---
+
+## Banco de Dados
+
+O projeto utiliza PostgreSQL como banco de dados principal.
+
+A configuração é realizada através de variáveis de ambiente armazenadas em arquivo `.env`.
 
 ---
 
 ## Próximas Etapas
 
-* Implementação da API REST
+* Desenvolvimento da API REST
 * Serializers
 * ViewSets
 * Routers
 * Versionamento da API
 * Autenticação JWT
-* Documentação Swagger
+* Documentação Swagger/OpenAPI
 * Paginação
-* Cache de listagens
-* Filtros e Query Params
-* Integração futura com Front-end React
+* Filtros e busca
+* Cache
+* Testes automatizados
+* Integração com Front-end React
 
 ---
 
@@ -120,4 +204,4 @@ autorent/
 
 🚧 Em desenvolvimento
 
-Atualmente o backend e as regras de negócio principais estão implementados e sendo preparados para exposição através de uma API REST.
+Atualmente o domínio da aplicação, as entidades principais, as validações e as regras de negócio já estão implementados. O próximo passo será a construção da API REST responsável pela comunicação com aplicações externas e pelo futuro front-end React.
