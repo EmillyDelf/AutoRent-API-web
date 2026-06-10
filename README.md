@@ -1,149 +1,43 @@
-# 🚗 AutoRent - Sistema de Aluguel de Veículos
+# 🚗 AutoRent - Sistema de Locação de Veículos
 
-## Sobre o Projeto
+## 📖 Sobre o Projeto
 
-O AutoRent é um sistema de gerenciamento de locação de veículos desenvolvido com Django e PostgreSQL. O projeto foi concebido para automatizar os principais processos de uma locadora, incluindo gestão de clientes, controle de frota, reservas, pagamentos e avaliações.
+O **AutoRent** é um sistema de gerenciamento de locação de veículos desenvolvido utilizando **Python, Django, Django REST Framework e PostgreSQL**.
 
-Nesta fase foi desenvolvida a camada de backend, responsável pela modelagem dos dados, validações, regras de negócio e administração do sistema através do Django Admin, preparando a aplicação para futura integração com uma API REST e um front-end React.
+O objetivo do projeto é automatizar os principais processos de uma locadora de veículos, permitindo o gerenciamento de clientes, frota, reservas, pagamentos e avaliações por meio de uma API REST segura e documentada.
 
----
-
-## Funcionalidades Implementadas
-
-### 🚙 Gestão de Veículos
-
-* Cadastro de veículos
-* Controle de status do veículo
-* Identificação por placa
-* Controle de valor da diária
-* Validação de placa
-* Controle de disponibilidade por status
-
-Campos principais:
-
-* Marca
-* Modelo
-* Ano
-* Placa
-* Valor da diária
-* Status
+O sistema foi desenvolvido seguindo boas práticas de arquitetura, separação de responsabilidades e implementação de regras de negócio, sendo preparado para futura integração com uma aplicação Front-end desenvolvida em React.
 
 ---
 
-### 👤 Gestão de Clientes
+## 🎯 Objetivos
 
-* Cadastro completo de clientes
-* Controle de CPF único
-* Controle de CNH única
-* Armazenamento de endereço
-* Validação de CPF
-* Validação de CEP
-
-Campos principais:
-
-* Nome
-* E-mail
-* CPF
-* CNH
-* Telefone
-* Data de nascimento
-* Endereço
-* CEP
+* Gerenciar veículos disponíveis para locação.
+* Gerenciar clientes e seus documentos.
+* Controlar reservas e disponibilidade da frota.
+* Processar pagamentos.
+* Permitir avaliações dos veículos.
+* Disponibilizar uma API REST versionada.
+* Implementar autenticação segura com JWT.
+* Fornecer documentação automática da API.
+* Preparar integração futura com Front-end React.
 
 ---
 
-### 📅 Gestão de Reservas
-
-* Criação de reservas vinculadas a clientes e veículos
-* Controle de períodos de locação
-* Cálculo automático do valor da reserva
-* Controle de conflitos de agenda
-* Atualização automática do status do veículo
-* Controle de status da reserva
-
-Status disponíveis:
-
-* Pendente
-* Confirmada
-* Finalizada
-* Cancelada
-
----
-
-### 💳 Gestão de Pagamentos
-
-* Associação de pagamento a uma reserva
-* Controle de valor pago
-* Controle de método de pagamento
-* Controle de status do pagamento
-* Registro da data de pagamento
-
-Métodos disponíveis:
-
-* PIX
-* Cartão de Crédito
-* Cartão de Débito
-* Dinheiro
-
----
-
-### ⭐ Avaliações
-
-* Avaliação de veículos por clientes
-* Sistema de notas de 1 a 5
-* Comentários sobre a experiência de locação
-
----
-
-## Regras de Negócio Implementadas
-
-### Controle de Conflito de Reservas
-
-O sistema impede que um veículo possua duas reservas simultâneas para períodos sobrepostos.
-
-### Validação de Datas
-
-A data final da reserva deve ser posterior à data inicial.
-
-### Cálculo Automático da Locação
-
-O valor total da reserva é calculado automaticamente com base na quantidade de dias e no valor da diária do veículo.
-
-### Preço Dinâmico
-
-Reservas iniciadas na sexta-feira, sábado ou domingo recebem acréscimo de 15% sobre o valor total.
-
-### Atualização Automática de Status
-
-Ao confirmar uma reserva, o veículo passa automaticamente para o status "Alugado". Quando a reserva é finalizada ou cancelada, o veículo retorna para "Disponível".
-
-### Soft Delete
-
-Os registros não são removidos fisicamente do banco de dados. A exclusão é lógica, preservando o histórico para auditoria e rastreabilidade.
-
----
-
-## Validações Implementadas
-
-* CPF
-* CEP
-* Placa veicular
-* Ano do veículo
-* Valor mínimo da diária
-* Nota da avaliação
-* Data de nascimento
-* Conflitos de reserva
-
----
-
-## Estrutura Atual
+## 🏗️ Arquitetura do Projeto
 
 ```text
 autorent/
 │
 ├── autorent_app/
+│   │
 │   ├── api/
 │   │   └── v1/
+│   │       ├── serializers.py
+│   │       ├── viewsets.py
+│   │       ├── routers.py
+│   │       └── urls.py
+│   │
 │   ├── migrations/
 │   ├── admin.py
 │   ├── apps.py
@@ -159,49 +53,284 @@ autorent/
 │   └── wsgi.py
 │
 ├── .env
-└── manage.py
+├── manage.py
+└── requirements.txt
 ```
 
 ---
 
-## Tecnologias Utilizadas
+## 🛠 Tecnologias Utilizadas
+
+### Backend
 
 * Python 3
 * Django
 * Django REST Framework
 * PostgreSQL
+
+### Segurança
+
+* JWT Authentication
+* Django Permissions
+
+### Documentação
+
+* Swagger / OpenAPI
+* DRF Spectacular
+
+### Utilitários
+
+* Django Filters
+* Cache Framework
 * Python Decouple
-* Django Admin
 
 ---
 
-## Banco de Dados
+## 📦 Modelos Implementados
 
-O projeto utiliza PostgreSQL como banco de dados principal.
+### 🚙 Veículo
 
-A configuração é realizada através de variáveis de ambiente armazenadas em arquivo `.env`.
+Responsável pelo gerenciamento da frota.
+
+Campos principais:
+
+* Marca
+* Modelo
+* Ano
+* Placa
+* Preço da diária
+* Status
+
+Status disponíveis:
+
+* Disponível
+* Alugado
+* Manutenção
 
 ---
 
-## Próximas Etapas
+### 👤 Cliente
 
-* Desenvolvimento da API REST
+Responsável pelo cadastro dos locatários.
+
+Campos principais:
+
+* Nome
+* E-mail
+* CPF
+* CNH
+* Telefone
+* Data de nascimento
+* Endereço
+* CEP
+
+---
+
+### 📅 Reserva
+
+Responsável pelo processo de locação.
+
+Campos principais:
+
+* Cliente
+* Veículo
+* Data de início
+* Data de fim
+* Valor total
+* Status
+
+Status disponíveis:
+
+* Pendente
+* Confirmada
+* Finalizada
+* Cancelada
+
+---
+
+### 💳 Pagamento
+
+Responsável pelo controle financeiro das reservas.
+
+Campos principais:
+
+* Reserva
+* Valor
+* Método
+* Status
+* Data de pagamento
+
+Métodos disponíveis:
+
+* PIX
+* Cartão de Crédito
+* Cartão de Débito
+* Dinheiro
+
+Status disponíveis:
+
+* Pendente
+* Pago
+* Cancelado
+
+---
+
+### ⭐ Avaliação
+
+Responsável pelo feedback dos clientes.
+
+Campos principais:
+
+* Cliente
+* Veículo
+* Nota
+* Comentário
+
+---
+
+## ⚙️ Regras de Negócio Implementadas
+
+### Controle de Reservas
+
+O sistema impede que um mesmo veículo possua duas reservas simultâneas para períodos conflitantes.
+
+### Validação de Datas
+
+A data final deve ser obrigatoriamente posterior à data inicial da reserva.
+
+### Cálculo Automático da Locação
+
+O valor total da reserva é calculado automaticamente utilizando:
+
+```text
+Valor da diária × Quantidade de dias
+```
+
+### Preço Dinâmico
+
+Reservas iniciadas em:
+
+* Sexta-feira
+* Sábado
+* Domingo
+
+recebem acréscimo automático de 15%.
+
+### Atualização Automática de Status
+
+Quando uma reserva é confirmada:
+
+```text
+Veículo → ALUGADO
+```
+
+Quando uma reserva é finalizada ou cancelada:
+
+```text
+Veículo → DISPONÍVEL
+```
+
+### Soft Delete
+
+Os registros não são removidos fisicamente do banco de dados.
+
+Ao excluir um registro, o sistema apenas marca a data de exclusão, preservando histórico e auditoria.
+
+---
+
+## 🔒 Validações Implementadas
+
+* CPF
+* CEP
+* Placa veicular
+* Ano do veículo
+* Valor mínimo da diária
+* Nota da avaliação
+* Data de nascimento
+* Conflito de reservas
+
+---
+
+## 🧩 Recursos Implementados
+
+### Backend
+
+* BaseModel reutilizável
+* Soft Delete
+* Relacionamentos entre entidades
+* Validators personalizados
+* Django Admin configurado
+* PostgreSQL integrado
+* Variáveis de ambiente (.env)
+
+### API REST
+
+* Versionamento `/api/v1`
 * Serializers
 * ViewSets
 * Routers
-* Versionamento da API
-* Autenticação JWT
-* Documentação Swagger/OpenAPI
+* CRUD completo dos modelos
+
+### Segurança
+
+* JWT Authentication
+* Controle de acesso por token
+
+### Performance
+
 * Paginação
-* Filtros e busca
-* Cache
-* Testes automatizados
-* Integração com Front-end React
+* Cache em listagens
+* Search
+* Ordering
+* Query Parameters
+* Filtros dinâmicos
+
+### Documentação
+
+* Swagger UI
+* OpenAPI Schema
 
 ---
 
-## Status do Projeto
+## 🔗 Principais Endpoints
+
+```text
+/api/v1/veiculos/
+/api/v1/clientes/
+/api/v1/reservas/
+/api/v1/pagamentos/
+/api/v1/avaliacoes/
+```
+
+### Autenticação
+
+```text
+/api/token/
+/api/token/refresh/
+```
+
+### Documentação
+
+```text
+/api/docs/
+/api/schema/
+```
+
+---
+
+## 🧪 Testes da API
+
+A API pode ser testada utilizando:
+
+* Swagger UI
+* Postman
+* Insomnia
+
+---
+
+
+## 📌 Status do Projeto
 
 🚧 Em desenvolvimento
 
-Atualmente o domínio da aplicação, as entidades principais, as validações e as regras de negócio já estão implementados. O próximo passo será a construção da API REST responsável pela comunicação com aplicações externas e pelo futuro front-end React.
+Atualmente o backend e a API REST encontram-se implementados, contemplando os requisitos acadêmicos do projeto. O próximo passo será a construção do Front-end em React e a evolução dos recursos avançados da aplicação.
