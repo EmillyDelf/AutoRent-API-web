@@ -4,7 +4,7 @@
 
 O **AutoRent** é um sistema de gerenciamento de locação de veículos desenvolvido utilizando **Python, Django, Django REST Framework e PostgreSQL**.
 
-O objetivo do projeto é automatizar os principais processos de uma locadora de veículos, permitindo o gerenciamento de clientes, frota, reservas, pagamentos e avaliações por meio de uma API REST segura e documentada.
+O objetivo do projeto é automatizar os principais processos de uma locadora de veículos, permitindo o gerenciamento de clientes, reservas, pagamentos e avaliações por meio de uma API REST segura e documentada.
 
 O sistema foi desenvolvido seguindo boas práticas de arquitetura, separação de responsabilidades e implementação de regras de negócio, sendo preparado para futura integração com uma aplicação Front-end desenvolvida em React.
 
