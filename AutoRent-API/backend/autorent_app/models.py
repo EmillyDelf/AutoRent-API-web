@@ -303,9 +303,7 @@ class Avaliacao(BaseModel):
     )
 
     nota = models.PositiveSmallIntegerField(
-        validators=[
-            MinValueValidator(1),
-            MaxValueValidator(5)
+        validators=[MinValueValidator(1),MaxValueValidator(5)
         ]
     )
 
